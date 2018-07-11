@@ -1,5 +1,5 @@
 # stat-salad (working title)
-## A simple miner stats aggregator to be used as a REST backend for creating monitoring dashboards.
+## A simple REST backend to be used for creating miner monitoring dashboards.
 
 
 ## Overview
