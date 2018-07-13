@@ -1,0 +1,5 @@
+{
+  "worker_port": "2323",
+  "broadcast_port": "8080",
+  "debug": "True"
+}
