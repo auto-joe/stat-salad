@@ -9,7 +9,7 @@ import requests
 import logging
 import os
 import socket
-
+import re
 
 #Logging configuration
 logging.basicConfig(format='%(asctime)s %(message)s',level=logging.INFO)
@@ -49,17 +49,27 @@ def get_lan_ip():
 
 
 def find_ip(str):
-    str = str.split('(')
-    if len(str) > 1:
-        if 'latency' not in str[1] and 'nmap.org' not in str[1] and 'scanned' not in str[1]:
-            ip = str[1]
-        else:
-            ip = None
+    ip = re.compile('(([2][5][0-5]\.)|([2][0-4][0-9]\.)|([0-1]?[0-9]?[0-9]\.)){3}'
+                +'(([2][5][0-5])|([2][0-4][0-9])|([0-1]?[0-9]?[0-9]))')
+
+    match = ip.search(str)
+    if match:
+      host=match.group()
     else:
-        ip = None
-    if ip !=None:
-        ip = ip.strip(')')
-    return ip
+      host=None
+    return host
+    #Commented out old code. Worked on mac but not linux. Leaving until new code is tested on mac
+    #str = str.split('(')
+    #if len(str) > 1:
+    #    if 'latency' not in str[1] and 'nmap.org' not in str[1] and 'scanned' not in str[1]:
+    #        ip = str[1]
+    #    else:
+    #        ip = None
+    #else:
+    #    ip = None
+    #if ip !=None:
+    #    ip = ip.strip(')')
+    #return ip
 
 
 
@@ -74,15 +84,16 @@ def scan_network(port, ip):
     response=response.split("\n")
     ipList = []
     for x in response:
+            logging.debug(str(x))
             ip = find_ip(str(x))
             if ip != None:
                 ipList.append(ip)
-
+    logging.debug("Found IP's: "+str(ipList))
     workerList = []
 
     for x in ipList:
         try:
-            stats=requests.get("http://"+x+":"+workerPort, timeout=.01)
+            stats=requests.get("http://"+x+":"+workerPort)
             #pprint(stats.json())
             worker_id=stats.json()['worker_id']
             hashrates=stats.json()['hashrate']['total']
@@ -146,4 +157,4 @@ workers=scan_network(workerPort, ip)
 logging.info("Searched on port: "+workerPort)
 logging.info("Initial network scan complete.")
 logging.info("Found "+str(len(workers))+" workers.")
-app.run(debug=debugging, port=int(broadcastPort))
+app.run(debug=True, port=int(broadcastPort))
